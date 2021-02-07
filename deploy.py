@@ -1,51 +1,26 @@
-#!/usr/bin/env python
-import subprocess
-import click
+from azureml.core.environment import Environment
+from azureml.core.model import InferenceConfig, Model
+from azureml.core.webservice import LocalWebservice
+from azureml.core import Workspace
 
-
-def execute(cmd):
-    print(cmd)
-    popen = subprocess.Popen(
-        cmd, stdout=subprocess.PIPE, universal_newlines=True)
-    for stdout_line in iter(popen.stdout.readline, ""):
-        yield stdout_line
-    popen.stdout.close()
-    return_code = popen.wait()
-    if return_code:
-        raise subprocess.CalledProcessError(return_code, cmd)
-    return popen
-
-
-@click.group()
-def cli():
-    pass
-
-
-@cli.command()
-@click.option('--model', '-m', default='lpr:4')
-@click.option('--inferconfig', '--ic', default='inferconfig.json')
-# @click.option('--deployconfig', '--dc', default='localdeploy.json')
-@click.option('deployconfig', '--local', flag_value='localdeploy.json', default=True)
-@click.option('deployconfig', '--aks',  flag_value='aksdeploy.json')
-@click.option('deployconfig', '--deployconfig', '--dc', default='localdeploy.json')
-@click.option('--name', '-n', default='lprtest')
-def deploy(model, inferconfig, deployconfig, name):
-    run = execute(['az', 'ml', 'model', 'deploy', '-m', model, '--ic',
-                   inferconfig, '--dc', deployconfig, '--name', name, '--overwrite'])
-    for line in run:
-        print(line, end="")
-    pass
-
-
-@cli.command()
-@click.option('--workspace', '-w', default='LPR')
-@click.option('--group', '-g', default='fyp-smartcarpark')
-def workspace(workspace, group):
-    run = execute(['az', 'ml', 'folder', 'attach',
-                   '-w', workspace, '-g', group])
-    for line in run:
-        print(line, end="")
-
-
-if '__main__' == __name__:
-    cli()
+# Get the workspace
+ws = Workspace.from_config()
+# Create inference configuration based on the environment definition and the entry script
+# yolo = Environment.from_conda_specification(name="env", file_path="yolo.yml")
+yolo = Environment.from_pip_requirements(
+    name="yolo", file_path="./yolov5/requirements.txt")
+# yolo.save_to_directory('')
+yolo.register(workspace=ws)
+inference_config = InferenceConfig(
+    entry_script="azure.py", environment=yolo, source_directory="yolov5")
+# Retrieve registered model
+model = Model(ws, id="lpr:1")
+# Create a local deployment, using port 8890 for the web service endpoint
+deployment_config = LocalWebservice.deploy_configuration(port=8890)
+# Deploy the service
+service = Model.deploy(
+    ws, "lpr", [model], inference_config, deployment_config, overwrite=True)
+# Wait for the deployment to complete
+service.wait_for_deployment(True)
+# Display the port that the web service is available on
+print(service.port)
