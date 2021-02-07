@@ -1,0 +1,8 @@
+{
+    "entryScript": "../dummy.py",
+    // "entryScript": "azure.py",
+    "sourceDirectory": "./yolov5",
+    "enableGpu": true
+    // "condaFile": "(null)",
+    // "extraDockerfileSteps": "extra_dockerfile_steps"
+}

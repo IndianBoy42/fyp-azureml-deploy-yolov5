@@ -1,0 +1,5 @@
+{
+	"computeType": "aks",
+	"computeTarget": "aks",
+	"port": 32267
+}

@@ -1,0 +1,4 @@
+{
+    "entryScript": "azure.py",
+    "sourceDirectory": "./yolov5"
+}
