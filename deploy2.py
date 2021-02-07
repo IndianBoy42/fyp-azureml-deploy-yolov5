@@ -19,7 +19,7 @@ model = Model(ws, id="lpr:1")
 deployment_config = LocalWebservice.deploy_configuration(port=8890)
 # Deploy the service
 service = Model.deploy(
-    ws, "lpr", [model], inference_config, deployment_config)
+    ws, "lpr", [model], inference_config, deployment_config, overwrite=True)
 # Wait for the deployment to complete
 service.wait_for_deployment(True)
 # Display the port that the web service is available on
