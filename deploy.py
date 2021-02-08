@@ -20,7 +20,7 @@ def deploy(local, aks, aci, num_cores, mem_gb, compute_name):
     # Create inference configuration based on the environment definition and the entry script
     # yolo = Environment.from_conda_specification(name="env", file_path="yolo.yml")
     yolo = Environment.from_pip_requirements(
-        name="yolo", file_path="./yolov5/requirements.txt")
+        name="yolo", file_path="./deployed_requirements.txt")
     # yolo.save_to_directory('')
     yolo.register(workspace=ws)
     inference_config = InferenceConfig(
@@ -55,7 +55,8 @@ def deploy(local, aks, aci, num_cores, mem_gb, compute_name):
     print("Deploying:")
     service.wait_for_deployment(True)
     # Display the port that the web service is available on
-    print(service.port)
+    if local:
+        print(service.port)
 
     # TODO: Test
 
